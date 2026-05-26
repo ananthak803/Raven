@@ -1,16 +1,87 @@
-# React + Vite
+# Frontend Documentation (React + Vite + Socket.io + WebRTC)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This frontend is the UI for the chat + calling app.
 
-Currently, two official plugins are available:
+## Main ideas (easy language)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. **REST for fetching**: when you open a DM, the app fetches messages using HTTP.
+2. **Socket.io for live updates**: when another user sends a message, the server emits a socket event and the UI updates instantly.
+3. **WebRTC for audio/video calls**: Socket.io is used only for signaling (offer/answer/ICE candidates).
+4. **Zustand for shared state**: DM info, message list, and call state live in a single store.
 
-## React Compiler
+## How everything connects (big picture)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```mermaid
+flowchart LR
+  UI["React Components"] -->|"HTTP (REST)"| REST["Backend Routes (/message/:channelId)"]
+  UI -->|"Socket events"| WS["Socket.io Events (send_message, receive_message, call-*)"]
+  UI -->|WebRTC Media| MEDIA["Peer-to-peer media (audio/video)"]
+  WS --> "MongoDB"["MongoDB via Mongoose"]
+  WS --> "Kafka"["Kafka (offline notifications)"]
+```
 
-## Expanding the ESLint configuration
+## Key files (what each one does)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Socket client
+- `frontend/src/socket.js`
+  - Creates the shared Socket.io client (`autoConnect: false`)
+  - Uses `VITE_BACKEND_URL` to connect to the backend
+
+### State management
+- `frontend/src/store/useDmStore.js`
+  - Holds:
+    - `currentUser`
+    - `dms` + `onlineUsers`
+    - `activeDm` and `messages`
+    - call state: `callState`, `callType`, `callPeer`, streams, mute/cam toggles
+
+### Main page (calls + signaling listeners)
+- `frontend/src/pages/Home.jsx`
+  - Renders:
+    - `SidebarShowcase`
+    - `SectionContainer` (DM/settings/main content)
+    - `CallOverlay` (global WebRTC UI)
+  - Registers Socket.io listeners for:
+    - `call-incoming`, `call-answered`, `ice-candidate`, `call-rejected`, `call-ended`
+  - Buffers ICE candidates until `RTCPeerConnection` remote description is ready
+
+### DM / chat components
+- `frontend/src/components/normal/OpenDm.jsx`
+  - When `activeDm.channelId` changes:
+    - fetches messages using `GET /message/:channelId`
+    - joins the socket room: `socket.emit("join_channel", { channelId })`
+    - on new messages updates the store (via `receive_message` event)
+  - On leaving DM it emits `leave_channel`
+
+- `frontend/src/components/normal/InputBar.jsx`
+  - Sends messages from the active DM
+  - For text:
+    - encrypts with `encryptText(...)`
+    - emits `socket.emit("send_message", { channelId, content, attachment })`
+  - For attachments:
+    - uploads encrypted data to Cloudinary
+    - emits `send_message` with the returned `secure_url` as `attachment`
+
+- `frontend/src/components/normal/Message.jsx`
+  - Decrypts message text using `decryptText(message.content, activeDm.channelId)`
+  - For attachments:
+    - fetches encrypted attachment
+    - decrypts it in `DecryptedAttachment`
+
+### Call UI
+- `frontend/src/components/normal/CallOverlay.jsx`
+  - Handles call accept/decline + WebRTC setup
+  - Uses the store to read/update streams and toggles
+  - Sends signaling events to backend:
+    - `call-user` and `make-answer`
+    - `ice-candidate`
+
+## Crypto helper
+- `frontend/src/utils/cryptoHelper.js`
+  - Encrypts/decrypts text and attachment payloads with **AES (CryptoJS)**
+  - Uses the `channelId` as the encryption key
+
+## Running
+- Backend dev: `cd backend && npm run dev`
+- Frontend dev: `cd frontend && npm run dev`
+- Run tests: `npm test` (Node’s built-in test runner)

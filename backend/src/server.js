@@ -44,7 +44,11 @@ const startServer = async () => {
 
     io = new Server(server, {
       cors: {
-        origin: config.CORS_ORIGINS,
+        origin: (origin, cb) => {
+          if (!origin) return cb(null, true);
+          if (config.CORS_ORIGINS.includes(origin)) return cb(null, true);
+          return cb(new Error("CORS not allowed"), false);
+        },
         credentials: true,
       },
     });

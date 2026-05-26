@@ -43,7 +43,12 @@ app.use((req, res, next) => {
 });
 
 app.use(cors({
-  origin: config.CORS_ORIGINS,
+  origin: (origin, cb) => {
+    // Allow same-origin / server-to-server / health checks
+    if (!origin) return cb(null, true);
+    if (config.CORS_ORIGINS.includes(origin)) return cb(null, true);
+    return cb(new Error("CORS not allowed"), false);
+  },
   credentials: true
 }));
 

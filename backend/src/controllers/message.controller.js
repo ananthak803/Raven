@@ -18,8 +18,14 @@ export const getChannelMessages = async (req, res) => {
     page: joi.number().integer().min(1).max(100).default(1),
   });
 
+  const pageRaw = req.query.page;
+  const pageParsed =
+    pageRaw === undefined || pageRaw === null || pageRaw === ""
+      ? undefined
+      : Number.parseInt(String(pageRaw), 10);
+
   const { error, value } = schema.validate({
-    page: Number.parseInt(req.query.page, 10),
+    page: Number.isNaN(pageParsed) ? pageRaw : pageParsed,
   });
   if (error) throw new ApiError(400, error.details[0].message);
 
