@@ -4,8 +4,15 @@ import Notification from '../models/notification.model.js';
 import { ChannelModel } from '../models/channel.model.js';
 import mongoose from 'mongoose';
 
+let kafkaConsumerInstance = null;
+let kafkaRunning = false;
+
 export const startKafkaWorker = async () => {
+  if (kafkaRunning) return;
+
   const consumer = getKafkaConsumer();
+  kafkaConsumerInstance = consumer;
+
   try {
     const admin = kafka.admin();
     await admin.connect();
@@ -18,6 +25,7 @@ export const startKafkaWorker = async () => {
 
     await consumer.connect();
     console.log('Kafka Worker Connected');
+    kafkaRunning = true;
     await consumer.subscribe({ topic: 'chat-messages', fromBeginning: false });
 
     await consumer.run({
@@ -60,5 +68,17 @@ export const startKafkaWorker = async () => {
     });
   } catch (error) {
     console.error('Error starting Kafka Worker:', error);
+  }
+};
+
+export const stopKafkaWorker = async () => {
+  try {
+    if (!kafkaConsumerInstance) return;
+    await kafkaConsumerInstance.disconnect();
+  } catch (error) {
+    console.error("Kafka Worker stop failed:", error?.message || error);
+  } finally {
+    kafkaConsumerInstance = null;
+    kafkaRunning = false;
   }
 };

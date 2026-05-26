@@ -2,13 +2,14 @@ import { UserModel, validateUser, validateLogin } from "../models/user.model.js"
 import bcrypt from "bcrypt";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { config } from "../config/index.js";
 
 const cookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  secure: config.NODE_ENV === "production",
+  sameSite: config.NODE_ENV === "production" ? "none" : "lax",
   maxAge: 15 * 24 * 60 * 60 * 1000,
-}
+};
 const generateToken = async (user) => {
   const accessToken = user.generateAccessToken();
   return accessToken;

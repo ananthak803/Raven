@@ -3,10 +3,10 @@ import DmSection from "./DmSection";
 import GroupSection from "./GroupSection";
 import SettingSection from "./SettingSection";
 import Home from "./Home";
-const SectionContainer = ({ active}) => {
+const SectionContainer = ({ active, peerConnectionRef }) => {
   return (
     <>
-      {active === "dm" && <DmSection />}
+      {active === "dm" && <DmSection peerConnectionRef={peerConnectionRef} />}
       {active === "group" && <GroupSection />}
       {active === "setting" && <SettingSection />}
       {active==="" && <Home/>}

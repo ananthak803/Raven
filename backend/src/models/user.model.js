@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import joi from "joi";
+import { config } from "../config/index.js";
 
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true,unique:true,trim:true },
@@ -23,8 +24,8 @@ userSchema.methods.generateAccessToken = function () {
     {
       userId: this._id,
     },
-    process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN },
+    config.ACCESS_TOKEN_SECRET,
+    { expiresIn: config.ACCESS_TOKEN_EXPIRES_IN },
   );
 };
 

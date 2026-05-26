@@ -66,5 +66,41 @@ export const useDmStore = create((set) => ({
       dms: updatedDms,
       messages: newMessages
     };
+  }),
+
+  // --- Calling State & Actions ---
+  callState: "idle", // "idle" | "outgoing" | "incoming" | "active"
+  callType: null, // "audio" | "video"
+  callPeer: null, // User object of the remote peer
+  incomingCallOffer: null,
+  localStream: null,
+  remoteStream: null,
+  isMuted: false,
+  isCamOff: false,
+  isMinimized: false,
+  callDuration: 0,
+
+  setCallState: (status) => set({ callState: status }),
+  setCallType: (type) => set({ callType: type }),
+  setCallPeer: (peer) => set({ callPeer: peer }),
+  setIncomingCallOffer: (offer) => set({ incomingCallOffer: offer }),
+  setLocalStream: (stream) => set({ localStream: stream }),
+  setRemoteStream: (stream) => set({ remoteStream: stream }),
+  setIsMuted: (muted) => set({ isMuted: muted }),
+  setIsCamOff: (camOff) => set({ isCamOff: camOff }),
+  setIsMinimized: (minimized) => set({ isMinimized: minimized }),
+  setCallDuration: (duration) => set({ callDuration: duration }),
+  
+  resetCall: () => set({
+    callState: "idle",
+    callType: null,
+    callPeer: null,
+    incomingCallOffer: null,
+    localStream: null,
+    remoteStream: null,
+    isMuted: false,
+    isCamOff: false,
+    isMinimized: false,
+    callDuration: 0
   })
 }));

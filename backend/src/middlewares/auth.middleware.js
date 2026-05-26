@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 // import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
 import { UserModel } from "../models/user.model.js";
+import { config } from "../config/index.js";
 
 
 const authMiddleware = async (req, res, next) => {
@@ -13,7 +14,12 @@ const authMiddleware = async (req, res, next) => {
   const token = req.cookies?.accessToken;
   if (!token) throw new ApiError(401, "Unauthorized");
 
-  const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+  let decoded;
+  try {
+    decoded = jwt.verify(token, config.ACCESS_TOKEN_SECRET);
+  } catch (error) {
+    throw new ApiError(401, "Unauthorized");
+  }
   if (!decoded) throw new ApiError(401, "Unauthorized");
 
   const user = await UserModel

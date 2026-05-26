@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import DmListSection from "./DmListSection";
 import OpenDm from "./OpenDm";
 import { useDmStore } from "../../store/useDmStore";
@@ -8,7 +8,7 @@ import { socket } from "../../socket";
 import Particles from "../animated/ParticleSpread";
 
 
-const DmSection = () => {
+const DmSection = ({ peerConnectionRef }) => {
   const activeDm = useDmStore((state) => state.activeDm);
   const setDms = useDmStore((state) => state.setDms);
   const currentUser = useDmStore((state) => state.currentUser);
@@ -113,7 +113,7 @@ const DmSection = () => {
           overflow-hidden
         ">
           {activeDm ? (
-            <OpenDm item={activeDm} />
+            <OpenDm item={activeDm} peerConnectionRef={peerConnectionRef} />
           ) : (
             <div className="flex items-center justify-center h-full text-zinc-500/50 mix-blend-screen">
               <FriendSection />

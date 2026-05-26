@@ -1,14 +1,15 @@
-import { Kafka } from 'kafkajs';
+import { Kafka } from "kafkajs";
+import { config } from "./index.js";
 
 const kafka = new Kafka({
-  clientId: 'messaging-app-backend',
-  brokers: [process.env.KAFKA_BROKER || 'localhost:9092'],
-  ...(process.env.KAFKA_USERNAME && {
-    ssl: { rejectUnauthorized: false },
+  clientId: "messaging-app-backend",
+  brokers: [config.KAFKA_BROKER || "localhost:9092"],
+  ...(config.KAFKA_USERNAME && {
+    ssl: { rejectUnauthorized: false }, // NOTE: consider tightening this in production if possible
     sasl: {
-      mechanism: process.env.KAFKA_SASL_MECHANISM || 'plain',
-      username: process.env.KAFKA_USERNAME,
-      password: process.env.KAFKA_PASSWORD,
+      mechanism: config.KAFKA_SASL_MECHANISM || "plain",
+      username: config.KAFKA_USERNAME,
+      password: config.KAFKA_PASSWORD,
     },
   }),
 });

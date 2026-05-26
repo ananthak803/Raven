@@ -1,39 +1,63 @@
-import "dotenv/config.js";
-import app from "./index.js";
-import { connectDB } from "./config/db.js";
+import "dotenv/config";
 import http from "http";
 import { Server } from "socket.io";
-import chatSocket from "./sockets/chat.socket.js";
-import { startKafkaWorker } from "./workers/kafka.worker.js";
 
-const PORT = process.env.PORT || 5000;
+import app from "./index.js";
+import { config } from "./config/index.js";
+import { connectDB, disconnectDB } from "./config/db.js";
+import chatSocket from "./sockets/chat.socket.js";
+import { startKafkaWorker, stopKafkaWorker } from "./workers/kafka.worker.js";
 
 const startServer = async () => {
-  try {
-    await connectDB();
+  let server;
+  let io;
 
-    const server = http.createServer(app);
+  const shutdown = async (signal) => {
+    try {
+      console.log(`[server] Shutdown requested: ${signal}`);
 
-    const io = new Server(server, {
-      cors: {
-        origin: [
-          "http://localhost:5173", 
-          "https://raven-ten-ochre.vercel.app", 
-          process.env.FRONTEND_URL
-        ],
-        credentials: true
+      if (io) {
+        // Stop accepting new socket events + disconnect clients.
+        await io.close();
       }
+
+      if (server) {
+        await new Promise((resolve) => server.close(resolve));
+      }
+
+      await stopKafkaWorker();
+      await disconnectDB();
+    } catch (error) {
+      console.error("[server] Shutdown error:", error?.message || error);
+    } finally {
+      process.exit(0);
+    }
+  };
+
+  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+
+  try {
+    await connectDB({ required: config.DB_REQUIRED });
+
+    server = http.createServer(app);
+
+    io = new Server(server, {
+      cors: {
+        origin: config.CORS_ORIGINS,
+        credentials: true,
+      },
     });
 
     chatSocket(io);
     app.set("io", io);
-    server.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+
+    server.listen(config.PORT, () => {
+      console.log(`[server] Listening on port ${config.PORT}`);
       startKafkaWorker();
     });
-
   } catch (error) {
-    console.error("Failed to start server:", error.message);
+    console.error("[server] Failed to start:", error?.message || error);
     process.exit(1);
   }
 };
