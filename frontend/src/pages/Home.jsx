@@ -16,8 +16,6 @@ const Home = () => {
     setCallType,
     setCallPeer,
     setIncomingCallOffer,
-    setRemoteStream,
-    localStream,
     resetCall
   } = useDmStore();
 
@@ -45,7 +43,9 @@ const Home = () => {
       if (peerConnectionRef.current) {
         try {
           peerConnectionRef.current.close();
-        } catch (e) {}
+        } catch {
+          // Ignore cleanup errors
+        }
         peerConnectionRef.current = null;
       }
       const stream = useDmStore.getState().localStream;

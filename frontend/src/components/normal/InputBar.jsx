@@ -34,7 +34,6 @@ const InputBar = () => {
   }, [showEmoji]);
 
   const activeDm = useDmStore((state) => state.activeDm);
-  const url = import.meta.env.VITE_BACKEND_URL;
 
   const handleSend = async () => {
     if (isUploading || !activeDm?.channelId) return;
@@ -102,7 +101,8 @@ const InputBar = () => {
       socket.emit("send_message", {
         channelId: activeDm.channelId,
         content: encryptedContent,
-        attachment: null,
+        // For text messages we omit attachment entirely.
+        attachment: undefined,
       });
 
       setContent("");

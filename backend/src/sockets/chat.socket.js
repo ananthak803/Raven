@@ -67,7 +67,8 @@ const chatSocket = (io) => {
     // --- WebRTC Calling Signaling ---
     socket.on("call-user", ({ to, offer, callType, callerInfo }, ack) => {
       try {
-        if (!to || typeof to !== "string") {
+        const toId = typeof to === "string" ? to : to?.toString?.();
+        if (!toId) {
           ack?.({ ok: false, error: "Invalid recipient" });
           return;
         }
@@ -79,7 +80,7 @@ const chatSocket = (io) => {
         console.log(`call-user received: from=${socket.userId} to=${to}`);
 
         console.log(`Forwarding call from ${socket.userId} to ${to}`);
-        io.to(to.toString()).emit("call-incoming", {
+        io.to(toId).emit("call-incoming", {
           from: socket.userId,
           offer,
           callType,
@@ -95,7 +96,8 @@ const chatSocket = (io) => {
 
     socket.on("make-answer", ({ to, answer }, ack) => {
       try {
-        if (!to || typeof to !== "string") {
+        const toId = typeof to === "string" ? to : to?.toString?.();
+        if (!toId) {
           ack?.({ ok: false, error: "Invalid recipient" });
           return;
         }
@@ -106,7 +108,7 @@ const chatSocket = (io) => {
 
         console.log(`make-answer received: from=${socket.userId} to=${to}`);
         console.log(`Forwarding answer from ${socket.userId} to ${to}`);
-        io.to(to.toString()).emit("call-answered", {
+        io.to(toId).emit("call-answered", {
           from: socket.userId,
           answer
         });
@@ -118,25 +120,30 @@ const chatSocket = (io) => {
     });
 
     socket.on("ice-candidate", ({ to, candidate }) => {
-      if (!to || typeof to !== "string") return;
+      const toId = typeof to === "string" ? to : to?.toString?.();
+      if (!toId) return;
       // Frontend uses `candidate: null` as a metadata refresh trigger.
       if (candidate === undefined) return;
       if (!allowByRate(socket, "ice-candidate", 50, 10_000)) return;
 
-      io.to(to.toString()).emit("ice-candidate", {
+      io.to(toId).emit("ice-candidate", {
         from: socket.userId,
         candidate,
       });
     });
 
     socket.on("reject-call", ({ to }) => {
+      const toId = typeof to === "string" ? to : to?.toString?.();
+      if (!toId) return;
       console.log(`Call rejected by ${socket.userId} sent to ${to}`);
-      io.to(to.toString()).emit("call-rejected");
+      io.to(toId).emit("call-rejected");
     });
 
     socket.on("end-call", ({ to }) => {
+      const toId = typeof to === "string" ? to : to?.toString?.();
+      if (!toId) return;
       console.log(`Call ended by ${socket.userId} sent to ${to}`);
-      io.to(to.toString()).emit("call-ended");
+      io.to(toId).emit("call-ended");
     });
     // ---------------------------------
 
@@ -150,7 +157,11 @@ const chatSocket = (io) => {
         if (!mongoose.Types.ObjectId.isValid(channelId)) return;
         if (content !== undefined && typeof content !== "string") return;
         if (typeof content === "string" && content.length > 5000) return;
-        if (attachment !== undefined && typeof attachment !== "string") return;
+        // Frontend sends `attachment: null` for text messages.
+        if (attachment !== undefined && attachment !== null && typeof attachment !== "string") {
+          ack?.({ ok: false, error: "Invalid attachment" });
+          return;
+        }
 
         // Enforce channel membership (prevents non-members from sending into a channel).
         const channel = await ChannelModel.findOne({
