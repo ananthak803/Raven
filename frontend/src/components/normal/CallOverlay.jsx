@@ -218,7 +218,8 @@ const CallOverlay = ({ peerConnectionRef, iceCandidateBuffer }) => {
 
       // Set Remote Description (offer) with safety catch
       if (incomingCallOffer) {
-        await pc.setRemoteDescription(new RTCSessionDescription(incomingCallOffer));
+        // FIX: Use modern RTCSessionDescription API (no constructor wrapper)
+        await pc.setRemoteDescription(incomingCallOffer);
 
         // CRITICAL: Flush any ICE candidates that were buffered while waiting for PC creation
         if (iceCandidateBuffer?.current) {
