@@ -79,7 +79,8 @@ const Home = () => {
       const pc = peerConnectionRef.current;
       if (!pc) return;
       try {
-        await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        // FIX: Use modern RTCSessionDescription API (no constructor wrapper)
+        await pc.setRemoteDescription(answer);
         // NOW flush any ICE candidates that arrived before the answer
         await flushIceCandidates(pc);
         setCallState("active");
