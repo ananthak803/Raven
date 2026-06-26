@@ -14,38 +14,42 @@ This project is a real-time communication app with:
 
 ```mermaid
 flowchart LR
-  subgraph Client[Frontend (React/Vite)]
+
+subgraph Client["Frontend (React/Vite)"]
     UI["UI Components (DM, CallOverlay, Message)"]
-    socketClient["socket.io-client"]
-    zustand["zustand store (DM + call state)"]
-  end
+    Socket["socket.io-client"]
+    Store["Zustand Store (DM + Call State)"]
+end
 
-  subgraph Server[Backend (Express + Socket.io)]
-    http["REST API (routes/controllers)"]
-    sockets["Socket.io events (chat + call signaling)"]
-    err["Central error handler"]
-  end
+subgraph Server["Backend (Express + Socket.io)"]
+    REST["REST API (Routes/Controllers)"]
+    WS["Socket.io Events (Chat + Call Signaling)"]
+    Error["Central Error Handler"]
+end
 
-  subgraph Data[Data & Services]
-    mongo["MongoDB via Mongoose"]
-    redis["Redis (online + message cache)"]
-    kafka["Kafka (offline notifications)"]
-    cloudinary["Cloudinary (encrypted attachments)"]
-  end
+subgraph Data["Data & Services"]
+    Mongo["MongoDB (Mongoose)"]
+    Redis["Redis (Online + Cache)"]
+    Kafka["Kafka (Offline Notifications)"]
+    Cloudinary["Cloudinary (Encrypted Attachments)"]
+end
 
-  UI -->|"HTTP (REST)"| http
-  UI -->|"WebSocket events"| sockets
+UI -->|HTTP| REST
+UI -->|WebSocket| WS
 
-  sockets --> mongo
-  sockets --> redis
-  sockets --> kafka
-  http --> mongo
-  http --> cloudinary
+Socket --> WS
+Store --> UI
+
+REST --> Mongo
+REST --> Cloudinary
+
+WS --> Mongo
+WS --> Redis
+WS --> Kafka
 ```
-
 ## Running the app (development)
 
-### 1) Backend
+### 1 Backend
 1. Install dependencies:
    - `cd backend`
    - `npm i`

@@ -1,0 +1,123 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "Raven",
+    "languages": ["javascript", "jsx", "json", "html", "css", "yaml"],
+    "frameworks": ["React", "Express"],
+    "description": "Full-stack chat application (frontend + backend)",
+    "analyzedAt": "2026-05-27T01:42:31.534+05:30",
+    "gitCommitHash": "0b82edc9fe36e18400f311dfc3a13a07248e7ab7"
+  },
+  "nodes": [
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "summary": "Project README",
+      "tags": ["docs"],
+      "filePath": "README.md"
+    },
+    {
+      "id": "file:frontend/src/main.jsx",
+      "type": "file",
+      "name": "frontend/src/main.jsx",
+      "summary": "Frontend entry — mounts React app and bootstraps client-side code.",
+      "tags": ["frontend", "react"],
+      "filePath": "frontend/src/main.jsx"
+    },
+    {
+      "id": "file:frontend/src/App.jsx",
+      "type": "file",
+      "name": "frontend/src/App.jsx",
+      "summary": "Top-level React component for the chat UI.",
+      "tags": ["frontend", "react"],
+      "filePath": "frontend/src/App.jsx"
+    },
+    {
+      "id": "file:backend/src/index.js",
+      "type": "file",
+      "name": "backend/src/index.js",
+      "summary": "Backend application entry / Express app setup.",
+      "tags": ["backend", "express"],
+      "filePath": "backend/src/index.js"
+    },
+    {
+      "id": "file:backend/src/server.js",
+      "type": "file",
+      "name": "backend/src/server.js",
+      "summary": "HTTP server bootstrap and socket setup.",
+      "tags": ["backend", "server"],
+      "filePath": "backend/src/server.js"
+    },
+    {
+      "id": "file:docker-compose.yml",
+      "type": "file",
+      "name": "docker-compose.yml",
+      "summary": "Docker compose configuration for local services.",
+      "tags": ["infra", "docker"],
+      "filePath": "docker-compose.yml"
+    },
+    {
+      "id": "file:frontend/package.json",
+      "type": "file",
+      "name": "frontend/package.json",
+      "summary": "Frontend package manifest.",
+      "tags": ["frontend", "npm"],
+      "filePath": "frontend/package.json"
+    },
+    {
+      "id": "file:backend/package.json",
+      "type": "file",
+      "name": "backend/package.json",
+      "summary": "Backend package manifest.",
+      "tags": ["backend", "npm"],
+      "filePath": "backend/package.json"
+    }
+  ],
+  "edges": [
+    { "source": "file:frontend/src/main.jsx", "target": "file:frontend/src/App.jsx", "type": "imports" },
+    { "source": "document:README.md", "target": "file:frontend/src/main.jsx", "type": "documents" },
+    { "source": "document:README.md", "target": "file:backend/src/index.js", "type": "documents" },
+    { "source": "file:backend/src/index.js", "target": "file:backend/src/server.js", "type": "imports" }
+  ],
+  "layers": [
+    {
+      "id": "layer:frontend",
+      "name": "Frontend",
+      "description": "Client-side React application (UI, components, assets).",
+      "nodeIds": ["file:frontend/src/main.jsx", "file:frontend/src/App.jsx", "file:frontend/package.json"]
+    },
+    {
+      "id": "layer:backend",
+      "name": "Backend",
+      "description": "Server-side Express application (API, models, controllers).",
+      "nodeIds": ["file:backend/src/index.js", "file:backend/src/server.js", "file:backend/package.json"]
+    },
+    {
+      "id": "layer:infrastructure",
+      "name": "Infrastructure",
+      "description": "Deployment and local dev infra (docker-compose, configs).",
+      "nodeIds": ["file:docker-compose.yml"]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "Project Overview",
+      "description": "Read the README to understand the project's purpose and setup.",
+      "nodeIds": ["document:README.md"]
+    },
+    {
+      "order": 2,
+      "title": "Frontend Boot",
+      "description": "How the React app is mounted and initialized.",
+      "nodeIds": ["file:frontend/src/main.jsx", "file:frontend/src/App.jsx"]
+    },
+    {
+      "order": 3,
+      "title": "Backend Entry",
+      "description": "Where the Express app starts and the server is configured.",
+      "nodeIds": ["file:backend/src/index.js", "file:backend/src/server.js"]
+    }
+  ]
+}

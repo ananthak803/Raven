@@ -13,11 +13,37 @@ This frontend is the UI for the chat + calling app.
 
 ```mermaid
 flowchart LR
-  UI["React Components"] -->|"HTTP (REST)"| REST["Backend Routes (/message/:channelId)"]
-  UI -->|"Socket events"| WS["Socket.io Events (send_message, receive_message, call-*)"]
-  UI -->|WebRTC Media| MEDIA["Peer-to-peer media (audio/video)"]
-  WS --> "MongoDB"["MongoDB via Mongoose"]
-  WS --> "Kafka"["Kafka (offline notifications)"]
+  subgraph Client["Frontend (React/Vite)"]
+    UI["UI Components (DM, CallOverlay, Message)"]
+    socketClient["socket.io-client"]
+    zustand["Zustand Store (DM + Call State)"]
+  end
+
+  subgraph Server["Backend (Express + Socket.io)"]
+    http["REST API (Routes/Controllers)"]
+    sockets["Socket.io Events (Chat + Call Signaling)"]
+    err["Central Error Handler"]
+  end
+
+  subgraph Data["Data & Services"]
+    mongo["MongoDB (Mongoose)"]
+    redis["Redis (Online Users + Cache)"]
+    kafka["Kafka (Offline Notifications)"]
+    cloudinary["Cloudinary (Encrypted Attachments)"]
+  end
+
+  UI -->|"HTTP (REST)"| http
+  UI -->|"WebSocket Events"| sockets
+
+  sockets --> mongo
+  sockets --> redis
+  sockets --> kafka
+
+  http --> mongo
+  http --> cloudinary
+
+  socketClient --> sockets
+  zustand --> UI
 ```
 
 ## Key files (what each one does)
